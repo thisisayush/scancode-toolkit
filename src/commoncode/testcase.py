@@ -426,7 +426,7 @@ def make_non_readable(location):
         current_stat = stat.S_IMODE(os.lstat(location).st_mode)
         os.chmod(location, current_stat & ~stat.S_IREAD)
     else:
-        os.chmod(location, 0555)
+        os.chmod(location, 0o555)
 
 
 def make_non_writable(location):
