@@ -32,7 +32,6 @@ from functools import partial
 import os
 import shutil
 import stat
-import sys
 import tarfile
 from unittest import TestCase as TestCaseClass
 import zipfile
@@ -49,8 +48,6 @@ from commoncode.system import on_windows
 # to ensure that multiple tests run can be launched in parallel
 test_run_temp_dir = None
 
-# set to 1 to see the slow tests
-timing_threshold = sys.maxint
 
 POSIX_PATH_SEP = b'/' if on_linux else '/'
 WIN_PATH_SEP = b'\\' if on_linux else '\\'
