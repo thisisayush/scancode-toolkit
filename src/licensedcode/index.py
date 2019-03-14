@@ -32,7 +32,12 @@ from collections import Counter
 from collections import defaultdict
 import cPickle
 from functools import partial
-from itertools import izip
+try:
+    # py2
+    from itertools import izip
+except ImportError:
+    # py3
+    izip = zip
 from operator import itemgetter
 import sys
 from time import time

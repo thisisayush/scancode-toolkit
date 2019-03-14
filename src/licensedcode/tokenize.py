@@ -28,7 +28,12 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from itertools import islice
-from itertools import izip
+try:
+    # py2
+    from itertools import izip
+except ImportError:
+    # py3
+    izip = zip
 import re
 from zlib import crc32
 
