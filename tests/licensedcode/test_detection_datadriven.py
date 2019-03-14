@@ -29,6 +29,7 @@ from __future__ import unicode_literals
 from collections import defaultdict
 from collections import OrderedDict
 import io
+from itertools import chain
 import os
 from os.path import abspath
 from os.path import join
@@ -42,7 +43,6 @@ from license_expression import Licensing
 from commoncode import fileutils
 from commoncode import saneyaml
 from commoncode import text
-from itertools import chain
 
 # Python 2 and 3 support
 try:
@@ -298,7 +298,6 @@ def make_test(license_test, regen=False):
             assert expected_expressions == failure_trace
 
     closure_test_function.__name__ = test_name
-    closure_test_function.funcname = test_name
 
     if expected_failure:
         closure_test_function = unittest.expectedFailure(closure_test_function)
