@@ -28,7 +28,12 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from functools import partial
-from itertools import imap
+try:
+    # Python 2
+    from itertools import imap
+except ImportError:
+    # Python 3
+    imap = map
 
 from plugincode import CodebasePlugin
 from plugincode import PluginManager

@@ -36,7 +36,12 @@ import scancode_config
 from collections import defaultdict
 from collections import OrderedDict
 from functools import partial
-from itertools import imap
+try:
+    # Python 2
+    from itertools import imap
+except ImportError:
+    # Python 3
+    imap = map
 import os
 import sys
 from time import time
