@@ -160,11 +160,11 @@ class RubyGem(models.Package):
 
     @classmethod
     def extra_key_files(cls):
-        return ['metadata.gz-extract/metadata.gz-extract']
+        return ['metadata.gz-extract', 'metadata.gz-extract/metadata.gz-extract']
 
     @classmethod
     def extra_root_dirs(cls):
-        return ['data.tar.gz-extract']
+        return ['data.tar.gz-extract', 'metadata.gz-extract']
 
 
 def rubygems_homepage_url(name, version, repo='https://rubygems.org/gems'):
