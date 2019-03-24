@@ -43,14 +43,7 @@ from license_expression import Licensing
 from commoncode import fileutils
 from commoncode import saneyaml
 from commoncode import text
-
-# Python 2 and 3 support
-try:
-    # Python 2
-    unicode
-except NameError:
-    # Python 3
-    unicode = str  # NOQA
+from commoncode import compat
 
 TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), 'data/licenses')
 
@@ -241,7 +234,7 @@ def make_test(license_test, regen=False):
     license_test LicenseTest object.
     """
     test_name = license_test.get_test_method_name()
-    if isinstance(test_name, unicode):
+    if isinstance(test_name, compat.unicode):
         test_name = test_name.encode('utf-8')
 
     from licensedcode import cache
