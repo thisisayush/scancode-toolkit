@@ -121,12 +121,13 @@ setup(
         'open source', 'scan', 'license', 'package', 'dependency',
         'copyright', 'filetype', 'author', 'extract', 'licensing',
     ],
+    python_requires='>=2.7,<3',    
     install_requires=[
         # cluecode
         # Some nltk version ranges are buggy
         'nltk >= 3.2, < 4.0',
         'publicsuffix2',
-        'py2-ipaddress >= 2.0, <3.5',
+        'py2-ipaddress >= 2.0, <3.5;python_version<"3"',
         'url >= 0.1.4, < 0.1.6',
         'fingerprints == 0.5.4',
 
@@ -177,6 +178,7 @@ setup(
         'packageurl-python >= 0.7.0',
         'xmltodict >= 0.11.0',
         'javaproperties >= 0.5',
+        'toml >= 0.10.0',
 
         # scancode
         'click >= 6.0.0, < 7.0.0',

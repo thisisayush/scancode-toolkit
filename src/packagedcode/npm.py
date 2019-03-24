@@ -187,7 +187,7 @@ def is_node_modules(location):
             and fileutils.file_name(location).lower() == 'node_modules')
 
 
-def parse(location, check_is_package=True):
+def parse(location):
     """
     Return a Package object from a package.json file or None.
     """
@@ -219,7 +219,7 @@ def build_package(package_data):
         if homepage:
             homepage = homepage[0]
         else:
-            homepage =''
+            homepage = ''
     namespace, name = split_scoped_package_name(name)
     package = NpmPackage(
         namespace=namespace or None,

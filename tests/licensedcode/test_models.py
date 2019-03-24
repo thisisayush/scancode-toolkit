@@ -111,11 +111,49 @@ class TestLicense(FileBasedTesting):
         expected = self.get_test_loc('models/license_rules.expected.json')
         check_json(expected, results)
 
-    def test_validate_licenses(self):
-        errors, warnings, infos = models.License.validate(cache.get_licenses_db())
+    def test_validate_license_library(self):
+        errors, warnings, infos = models.License.validate(
+            cache.get_licenses_db(), verbose=True)
         assert {} == errors
         assert {} == warnings
         assert infos
+
+    def test_validate_license_library_can_return_errors(self):
+        test_dir = self.get_test_loc('models/validate')
+        lics = models.load_licenses(test_dir)
+        errors, warnings, infos = models.License.validate(
+            lics, no_dupe_urls=True, verbose=True)
+        expected_errors = {
+            'GLOBAL': [
+                'Duplicate texts in multiple licenses:apache-2.0: TEXT, bsd-ack-carrot2: TEXT',
+                'Duplicate short name:GPL 1.0 in licenses:gpl-1.0-plus, gpl-1.0',
+                'Duplicate name:GNU General Public License 1.0 in licenses:gpl-1.0-plus, gpl-1.0'],
+            'bsd-ack-carrot2': [
+                'No short name',
+                'No name',
+                'No category',
+                'No owner'],
+            'gpl-1.0': ['Unknown license category: GNU Copyleft'],
+            'w3c-docs-19990405': ['Unknown license category: Permissive Restricted']
+        }
+
+        assert expected_errors == errors
+        expected_warnings = {
+            'gpl-1.0': [
+                'Some empty text_urls values',
+                'Some empty other_urls values',
+                'Homepage URL also in text_urls',
+                'Homepage URL also in other_urls',
+                'Homepage URL same as faq_url',
+                'Homepage URL same as osi_url',
+                'osi_url same as faq_url',
+                'Some duplicated URLs']
+        }
+
+        assert expected_warnings == warnings
+
+        expected_infos = {'w3c-docs-19990405': [u'No license text']}
+        assert expected_infos == infos
 
     def test_load_licenses_fails_if_directory_contains_orphaned_files(self):
         test_dir = self.get_test_loc('models/orphaned_licenses')
@@ -129,11 +167,11 @@ class TestLicense(FileBasedTesting):
 class TestRule(FileBasedTesting):
     test_data_dir = TEST_DATA_DIR
 
-    def test_create_template_rule(self):
+    def test_create_rule_ignore_punctuation(self):
         test_rule = models.Rule(stored_text='A one. A {{}}two. A three.')
-        expected = ['a', 'one', 'a', 'two', 'a', 'three']
+        expected = ['one', 'two', 'three']
         assert expected == list(test_rule.tokens())
-        assert 6 == test_rule.length
+        assert 3 == test_rule.length
 
     def test_create_plain_rule_with_text_file(self):
 
@@ -144,9 +182,9 @@ class TestRule(FileBasedTesting):
             return tf
 
         test_rule = models.Rule(text_file=create_test_file('A one. A two. A three.'))
-        expected = ['a', 'one', 'a', 'two', 'a', 'three']
+        expected = ['one', 'two', 'three']
         assert expected == list(test_rule.tokens())
-        assert 6 == test_rule.length
+        assert 3 == test_rule.length
 
     def test_load_rules(self):
         test_dir = self.get_test_loc('models/rules')
@@ -196,7 +234,9 @@ class TestRule(FileBasedTesting):
                 length=12,
             )
         except Exception as e:
-            assert 'Unable to parse License rule expression: ' in str(e)
+            ex = str(e)
+            assert 'Unable to parse License rule expression: ' in ex
+            assert 'ExpressionError: AND requires two or more licenses as in: MIT AND BSD' in ex
 
     def test_template_rule_is_loaded_correctly(self):
         test_dir = self.get_test_loc('models/rule_template')
@@ -224,14 +264,6 @@ class TestRule(FileBasedTesting):
         expected = [
             'i', 'hereby', 'abandon', 'any', 'sax', '2', '0', 'the', 'and',
             'release', 'all', 'of', 'the', 'sax', '2', '0', 'source', 'code',
-            'of', 'his'
-        ]
-        assert expected == rule_tokens
-
-        rule_tokens = list(rule.tokens(lower=False))
-        expected = [
-            'I', 'hereby', 'abandon', 'any', 'SAX', '2', '0', 'the', 'and',
-            'Release', 'all', 'of', 'the', 'SAX', '2', '0', 'source', 'code',
             'of', 'his'
         ]
         assert expected == rule_tokens

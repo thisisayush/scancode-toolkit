@@ -29,9 +29,9 @@ from os.path import dirname
 from os.path import join
 
 from commoncode.testcase import FileDrivenTesting
+from commoncode.fileset import is_included
 from scancode.cli_test_utils import run_scan_click
 from scancode.cli_test_utils import load_json_result
-from scancode.plugin_ignore import is_ignored
 from scancode.plugin_ignore import ProcessIgnore
 from scancode.resource import Codebase
 
@@ -40,30 +40,30 @@ class TestPluginIgnoreFiles(FileDrivenTesting):
 
     test_data_dir = join(dirname(__file__), 'data')
 
-    def test_is_ignored_glob_path(self):
+    def test_is_included_glob_path(self):
         location = 'common/src/test/sample.txt'
-        ignores = {'*/src/test/*': 'test ignore'}
-        assert is_ignored(location=location, ignores=ignores)
+        excludes = {'*/src/test/*': 'test ignore'}
+        assert not is_included(location, excludes=excludes)
 
-    def test_is_ignored_single_path(self):
+    def test_is_included_single_path(self):
         location = 'common/src/test/sample.txt'
-        ignores = {'common/src/test/sample.txt': 'test ignore'}
-        assert is_ignored(location=location, ignores=ignores)
+        excludes = {'common/src/test/sample.txt': 'test ignore'}
+        assert not is_included(location, excludes=excludes)
 
-    def test_is_ignored_single_path_not_matching(self):
+    def test_is_included_single_path_not_matching(self):
         location = 'common/src/test/sample.txt'
-        ignores = {'src/test/sample.txt': 'test ignore'}
-        assert not is_ignored(location=location, ignores=ignores)
+        excludes = {'src/test/sample.txt': 'test ignore'}
+        assert is_included(location, excludes=excludes)
 
-    def test_is_ignored_single_file(self):
+    def test_is_included_single_file(self):
         location = 'common/src/test/sample.txt'
-        ignores = {'sample.txt': 'test ignore'}
-        assert is_ignored(location=location, ignores=ignores)
+        excludes = {'sample.txt': 'test ignore'}
+        assert not is_included(location, excludes=excludes)
 
-    def test_is_ignored_glob_file(self):
+    def test_is_included_glob_file(self):
         location = 'common/src/test/sample.txt'
-        ignores = {'*.txt': 'test ignore'}
-        assert is_ignored(location=location, ignores=ignores)
+        excludes = {'*.txt': 'test ignore'}
+        assert not is_included(location, excludes=excludes)
 
     def check_ProcessIgnore(self, test_dir, expected, ignore):
         codebase = Codebase(test_dir, strip_root=True)
@@ -128,6 +128,12 @@ class TestPluginIgnoreFiles(FileDrivenTesting):
         ]
         self.check_ProcessIgnore(test_dir, expected, ignore)
 
+    def test_ProcessIgnore_process_codebase_does_not_fail_to_access_an_ignored_resourced_cached_to_disk(self):
+        test_dir = self.extract_test_tar('plugin_ignore/user.tgz')
+        codebase = Codebase(test_dir, max_in_memory=1)
+        test_plugin = ProcessIgnore()
+        ignore = ['test']
+        test_plugin.process_codebase(codebase, ignore=ignore)
 
 
 class TestScanPluginIgnoreFiles(FileDrivenTesting):
@@ -235,3 +241,19 @@ class TestScanPluginIgnoreFiles(FileDrivenTesting):
         assert 0 == scan_result['headers'][0]['extra_data']['files_count']
         scan_locs = [x['path'] for x in scan_result['files']]
         assert [u'user', u'user/src'] == scan_locs
+
+    def test_scancode_codebase_attempt_to_access_an_ignored_resourced_cached_to_disk(self):
+        test_dir = self.extract_test_tar('plugin_ignore/user.tgz')
+        result_file = self.get_temp_file('json')
+        args = ['--copyright', '--strip-root', '--ignore', 'test', test_dir, '--max-in-memory', '1', '--json', result_file]
+        run_scan_click(args)
+        scan_result = load_json_result(result_file)
+        assert 2 == scan_result['headers'][0]['extra_data']['files_count']
+        scan_locs = [x['path'] for x in scan_result['files']]
+        expected = [
+            u'user',
+            u'user/ignore.doc',
+            u'user/src',
+            u'user/src/ignore.doc',
+        ]
+        assert expected == scan_locs
